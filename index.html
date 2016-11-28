@@ -4,6 +4,7 @@
         <title>Testing the Reddit JSON Api</title>
 
         <link href="style.css" rel="stylesheet" type="text/css"/>
+        <script type="text/javascript" src="vue.js"></script>
     </head>
 
     <div id="jsonApp">
@@ -13,16 +14,63 @@
         <span class="error">{{ errorMessage }}</span>
 
         <ul> 
-            <li v-for="item in items"><a v-bind:href="item.url">{{ item.title }}</a></li>
+            <li v-for="item in items">
+                <a v-bind:href="item.url">{{ item.title }}</a>
+
+                <ul>
+                    <li v-for="comment in item.comments">{{ comment }}</li>
+                </ul>
+
+            </li>
         </ul>
 
     </div>
     
     <body>
     
-        <script type="text/javascript" src="vue.js"></script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript">
+
+            function getComments(url, maxNumberOfComments) {
+
+                var comments = [];
+
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    method: "GET",
+                    success: function(data) {
+
+                        var jsonData = data[1].data.children;
+
+                        var numberOfCommentsToReturn = jsonData.length;
+                        if (jsonData.length > maxNumberOfComments)
+                        {
+                            numberOfCommentsToReturn = maxNumberOfComments;
+                        }
+
+                        for (var i = 0; i < maxNumberOfComments; i++)
+                        {
+                            var comment = jsonData[i].data.body;
+                            comments.push(comment);
+                        }
+
+                    },
+                    error: function(error) {
+                        console.log(JSON.stringify(error));
+                    }
+                  
+                });
+
+                return comments;
+                
+            }
+
+            function getJsonURL(relative_path) {
+                var prefix = "https://www.reddit.com";
+                var suffix = ".json";
+                return prefix + relative_path + suffix;
+            }
 
             var jsonApp = new Vue({
 
@@ -53,7 +101,19 @@
 
                                 for (var i = 0; i < jsonData.length; i++)
                                 {
-                                    self.items.push(jsonData[i].data);
+                                    // Create the post structure
+                                    var post = {};
+
+                                    // Store the post information
+                                    post.title = jsonData[i].data.title;
+                                    post.url = jsonData[i].data.url;
+
+                                    var jsonArticleURL = getJsonURL(jsonData[i].data.permalink);
+                                    var maxNumberOfComments = 5;
+                                    post.comments = getComments(jsonArticleURL, maxNumberOfComments);
+    
+                                    self.items.push(post);
+
                                 }
                             },
                             error: function(error) {
