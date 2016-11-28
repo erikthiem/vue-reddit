@@ -2,13 +2,15 @@
 <html>
     <head>
         <title>Testing the Reddit JSON Api</title>
+
+        <link href="style.css" rel="stylesheet" type="text/css"/>
     </head>
 
     <div id="jsonApp">
 
         <input v-model="subreddit" v-on:keyup.enter="loadSubreddit(subreddit)">
         <button v-on:click="loadSubreddit(subreddit)">GO!</button>
-        <span>{{ errorMessage }}</span>
+        <span class="error">{{ errorMessage }}</span>
 
         <ul> 
             <li v-for="item in items"><a v-bind:href="item.url">{{ item.title }}</a></li>
@@ -43,6 +45,8 @@
                             dataType: "json",
                             method: "GET",
                             success: function(data) {
+                                self.errorMessage = "";
+
                                 var jsonData = data.data.children;
 
                                 self.items = [];
