@@ -6,6 +6,10 @@
 
     <div id="jsonApp">
 
+        <input v-model="subreddit" v-on:keyup.enter="loadSubreddit(subreddit)">
+        <button v-on:click="loadSubreddit(subreddit)">GO!</button>
+        <span>{{ errorMessage }}</span>
+
         <ul> 
             <li v-for="item in items"><a v-bind:href="item.url">{{ item.title }}</a></li>
         </ul>
@@ -23,12 +27,13 @@
                 el: "#jsonApp",
 
                 data: {
-                    name: "test",
-                    items: []
+                    subreddit: "askreddit",
+                    items: [],
+                    errorMessage: ""
                 },
                 
                 mounted: function() {
-                    this.loadSubreddit("askreddit");
+                    this.loadSubreddit(this.subreddit);
                 },
                 methods: {
                     loadSubreddit: function(subreddit){
@@ -39,13 +44,17 @@
                             method: "GET",
                             success: function(data) {
                                 var jsonData = data.data.children;
+
+                                self.items = [];
+
                                 for (var i = 0; i < jsonData.length; i++)
                                 {
                                     self.items.push(jsonData[i].data);
                                 }
                             },
                             error: function(error) {
-                                alert(JSON.stringify(error));
+                                console.log(JSON.stringify(error));
+                                self.errorMessage = "Please enter a valid subreddit.";
                             }
                         });
 
